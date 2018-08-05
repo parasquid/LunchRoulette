@@ -65,3 +65,5 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 gem "dry-types"
 gem "dry-struct"
+
+gem 'slack-ruby-client'
