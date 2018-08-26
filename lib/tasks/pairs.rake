@@ -1,4 +1,4 @@
-questions = [
+QUESTIONS = [
   "Given the choice of anyone in the world, whom would you want as a dinner guest?",
   "Would you like to be famous? In what way?",
   "Before making a phone call, do you ever rehearse what you’re going to say? Why?",
@@ -36,26 +36,29 @@ questions = [
   "Of all the people in your family, whose death would you find most disturbing? Why?",
   "Share a personal problem and ask your buddy’s advice on how he or she might handle it. Also, ask your buddy to reflect back to you how you seem to be feeling about the problem you have chosen. ",
 ]
+CHANNEL = "#lunch-buddies"
+BOT_USER = "@lunch-roulette"
+MESSAGE = %(
+  *Hello there! Here's your lunch buddy tomorrow :smile:*\n
+  Need help with topics? I have 3 suggestions for you:\n
+)
 
 namespace :pairs do
   desc "generate_and_message"
   task :generate_and_message => :environment do
     client = Slack::Web::Client.new
 
-    users = client.channels_info(channel: "#lunch-buddies").channel.members
+    users = client.channels_info(channel: CHANNEL).channel.members
     list = LunchRoulette::RegistrationList.new(users)
 
-    bot_id = client.users_info(user: "@lunch-roulette").user.id
+    bot_id = client.users_info(user: BOT_USER).user.id
     list.generate_pairs(except: [bot_id], user_attribute: :to_s)
 
     list.pairs.each do |pair|
-      topics = questions.sample(3)
-      message = %(
-*Hello there! Here's your lunch buddy tomorrow :smile:*\n
-Need help with topics? I have 3 suggestions for you:\n
-#{topics.map { |l| "• " + l }.join("\n")}
-      )
+      topics = QUESTIONS.sample(3)
+      message = MESSAGE + "#{topics.map { |l| "• " + l }.join("\n")}"
       puts "messaging #{pair} #{pair.map { |u| client.users_info(user: u).user.real_name }} #{topics}"
+
       response = client.mpim_open(users: pair.join(","))
       channel_id = response.group.id
       client.chat_postMessage(channel: channel_id,
