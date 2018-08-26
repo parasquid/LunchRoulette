@@ -31,16 +31,20 @@ describe LunchRoulette::RegistrationList do
     Then { list.pairs == result }
   end
 
+  context "an exception can be passed in" do
+    Given(:users) { (1..4).map { |index| LunchRoulette::User.new(name: index) } }
+    Given(:list) { LunchRoulette::RegistrationList.new(users) }
+    When(:result) { list.generate_pairs(except: ["1"]) }
+    Then { result.count == 1 }
+  end
+
   context "with odd number of participants" do
     Given(:users) { (1..3).map { |index| LunchRoulette::User.new(name: index) } }
     Given(:list) { LunchRoulette::RegistrationList.new(users) }
     context "the last pair is a triad" do
       When(:result) { list.generate_pairs }
       Then { result.count == 1 }
-      Then {
-        puts result.inspect
-        result[0].count == 3
-      }
+      Then { result[0].count == 3 }
     end
   end
 end

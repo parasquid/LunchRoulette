@@ -43,12 +43,11 @@ namespace :pairs do
     client = Slack::Web::Client.new
 
     users = client.channels_info(channel: "#lunch-buddies").channel.members
+    list = LunchRoulette::RegistrationList.new(users)
 
     bot_id = client.users_info(user: "@lunch-roulette").user.id
-    users.reject! { |user_id| user_id == bot_id }
+    list.generate_pairs(except: [bot_id], user_attribute: :to_s)
 
-    list = LunchRoulette::RegistrationList.new(users)
-    list.generate_pairs
     list.pairs.each do |pair|
       topics = questions.sample(3)
       message = %(
@@ -60,9 +59,8 @@ Need help with topics? I have 3 suggestions for you:\n
       response = client.mpim_open(users: pair.join(","))
       channel_id = response.group.id
       client.chat_postMessage(channel: channel_id,
-        text: message,
-        as_user: true
-      )
+                              text: message,
+                              as_user: true)
     end
   end
 end
